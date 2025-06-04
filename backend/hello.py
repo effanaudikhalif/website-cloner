@@ -1,8 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Dict, List
+from pydantic import BaseModel, HttpUrl
+from typing import List
 import uvicorn
+import httpx
+from bs4 import BeautifulSoup
 
 # Create FastAPI instance
 app = FastAPI(
@@ -34,6 +36,10 @@ class ItemCreate(BaseModel):
     description: str = None
 
 
+class URLSubmit(BaseModel):
+    url: HttpUrl
+
+
 # In-memory storage for demo purposes
 items_db: List[Item] = [
     Item(id=1, name="Sample Item", description="This is a sample item"),
@@ -53,6 +59,21 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "service": "orchids-challenge-api"}
+
+
+@app.post("/submit-url")
+async def submit_url(payload: URLSubmit):
+    """Fetch the given URL and return the page title if reachable."""
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(str(payload.url), timeout=10)
+            response.raise_for_status()
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=400, detail=f"Failed to retrieve URL: {exc}") from exc
+
+    soup = BeautifulSoup(response.text, "html.parser")
+    title = soup.title.string.strip() if soup.title else ""
+    return {"url": payload.url, "title": title}
 
 # Get all items
 
