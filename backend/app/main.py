@@ -5,6 +5,7 @@ from typing import List
 import uvicorn
 import httpx
 from bs4 import BeautifulSoup
+from scraper import WebsiteContext, scrape_website
 
 # Create FastAPI instance
 app = FastAPI(
@@ -71,6 +72,13 @@ async def submit_url(payload: URLSubmit):
     soup = BeautifulSoup(response.text, "html.parser")
     title = soup.title.string.strip() if soup.title else ""
     return {"url": payload.url, "title": title}
+    
+@app.post("/scrape-context", response_model=WebsiteContext)
+async def scrape_context(payload: URLSubmit):
+    try:
+        return await scrape_website(str(payload.url))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Scraping failed: {e}")
 
 # Get all items
 
