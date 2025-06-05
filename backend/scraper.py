@@ -47,10 +47,10 @@ def extract_important_pieces(html: str) -> dict:
 async def scrape_website(url: str) -> WebsiteContext:
     bb = Browserbase(api_key=BROWSERBASE_API_KEY)
 
-    session = await bb.sessions.create(project_id=BROWSERBASE_PROJECT_ID)
+    session = bb.sessions.create(project_id=BROWSERBASE_PROJECT_ID)
 
     async with async_playwright() as p:
-        browser = await p.chromium.connect_over_cdp(session["connectUrl"])
+        browser = await p.chromium.connect_over_cdp(session.connect_url)
         context = browser.contexts[0]
         page = context.pages[0]
 
