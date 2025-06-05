@@ -5,6 +5,7 @@ from typing import List
 import uvicorn
 import httpx
 from bs4 import BeautifulSoup
+from backend.scraper import WebsiteContext, scrape_website
 
 # Create FastAPI instance
 app = FastAPI(
@@ -74,6 +75,15 @@ async def submit_url(payload: URLSubmit):
     soup = BeautifulSoup(response.text, "html.parser")
     title = soup.title.string.strip() if soup.title else ""
     return {"url": payload.url, "title": title}
+
+
+@app.post("/scrape-context", response_model=WebsiteContext)
+async def scrape_context(payload: URLSubmit):
+    """Return design-related information for the provided URL."""
+    try:
+        return await scrape_website(str(payload.url))
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=400, detail=f"Failed to retrieve URL: {exc}") from exc
 
 # Get all items
 
