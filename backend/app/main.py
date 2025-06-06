@@ -1,144 +1,146 @@
+# backend/main.py
+
+import json
+import re
+import sys
+from pathlib import Path
+import asyncio
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, HttpUrl
-from typing import List
 import uvicorn
-import httpx
-from bs4 import BeautifulSoup
-from scraper import WebsiteContext, scrape_website
 
-# Create FastAPI instance
+import anthropic  # your Anthropic SDK
+
+# import your existing modules:
+from scraper import scrape_website
+from filter_css import filter_css_from_html_and_css
+from recreate_site import build_summary_and_minimal_html, build_critical_css, format_prompt
+from inline_css import inline_css
+
+
+# ─── FastAPI setup ────────────────────────────────────────────────────────────────
+
 app = FastAPI(
     title="Orchids Challenge API",
-    description="A starter FastAPI template for the Orchids Challenge backend",
-    version="1.0.0"
+    description="Backend with a /generate endpoint that reuses scraper, filter_css, recreate_site, inline_css",
+    version="1.2.0",
 )
 
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific domains
+    allow_origins=["*"],  # For local development; tighten in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Pydantic models
-
-
-class Item(BaseModel):
-    id: int
-    name: str
-    description: str = None
-
-
-class ItemCreate(BaseModel):
-    name: str
-    description: str = None
-
 class URLSubmit(BaseModel):
     url: HttpUrl
 
-# In-memory storage for demo purposes
-items_db: List[Item] = [
-    Item(id=1, name="Sample Item", description="This is a sample item"),
-    Item(id=2, name="Another Item", description="This is another sample item")
-]
 
-# Root endpoint
+# ─── /generate endpoint ───────────────────────────────────────────────────────────────
 
+@app.post("/generate")
+async def generate(payload: URLSubmit):
+    """
+    1) Scrape the given URL (full HTML + raw CSS) via scrape_website(...)
+    2) Write raw context to generated/context.json (optional)
+    3) Filter the CSS with filter_css_from_html_and_css(...)
+    4) Build summary + minimal HTML snippet via build_summary_and_minimal_html(...)
+    5) Build critical CSS via build_critical_css(...)
+    6) Format a prompt for Claude via format_prompt(...)
+    7) Send prompt to Anthropic → two code fences: ```html``` + ```css```
+    8) Extract those blocks, inline the CSS, and write to generated/*
+    9) Return JSON { combined_html, html, css } to the caller
+    """
+    url = str(payload.url)
+
+    # ─── 1) Scrape ─────────────────────────────
+    try:
+        context = await scrape_website(url)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Scraping failed: {e}")
+
+    context_dict = context.model_dump()  # dict with keys: title, images, summary, css_contents, html, …
+
+    # Create “generated” folder if not already present
+    gen_dir = Path("generated")
+    gen_dir.mkdir(exist_ok=True)
+
+    # ─── 2) (Optional) Save raw context.json ─────────────────────────────
+    Path(gen_dir / "context.json").write_text(json.dumps(context_dict, indent=2, default=str))
+
+    # ─── 3) Filter CSS ─────────────────────────────
+    full_html = context_dict.get("html", "")
+    raw_css = context_dict.get("css_contents", "")
+    filtered_css = filter_css_from_html_and_css(full_html, raw_css)
+
+    # ─── 4) Build summary + minimal HTML snippet ─────────────────────────────
+    summary_json_obj, minimal_html = build_summary_and_minimal_html(context_dict)
+
+    # ─── 5) Build “critical CSS” from the filtered CSS ─────────────────────────────
+    critical_css = build_critical_css(filtered_css)
+
+    # ─── 6) Format prompt for Claude ─────────────────────────────
+    prompt = format_prompt(summary_json_obj, minimal_html, critical_css)
+
+    # ─── 7) Send to Claude ─────────────────────────────
+    client = anthropic.Anthropic(api_key="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")
+    response = client.messages.create(
+        model="claude-sonnet-4-20250514",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=4096,
+    )
+
+    # ─── 8) Extract raw Claude output, then pull out HTML/CSS fences ─────────────────────────────
+    raw_output = "".join(part.text for part in response.content if hasattr(part, "text"))
+
+    # extract code block helpers
+    def extract_code(block_type: str, text: str) -> str:
+        fence_pattern = rf"```{block_type}\s*(.*?)\s*```"
+        match = re.search(fence_pattern, text, re.DOTALL)
+        if match:
+            return match.group(1).strip()
+
+        if block_type == "css":
+            # fallback: capture from the opening ```css to end
+            start_pattern = r"```css\s*(.*)$"
+            match2 = re.search(start_pattern, text, re.DOTALL)
+            if match2:
+                return match2.group(1).strip()
+        return ""
+
+    html_generated = extract_code("html", raw_output)
+    css_generated = extract_code("css", raw_output)
+
+    # ─── 9) Inline CSS into the generated HTML ─────────────────────────────
+    combined_html = inline_css(html_generated, css_generated)
+
+    # Write files into “generated/”
+    Path(gen_dir / "recreated_page.html").write_text(html_generated)
+    Path(gen_dir / "styles.css").write_text(css_generated)
+    Path(gen_dir / "recreated_combined.html").write_text(combined_html)
+
+    # ─── 10) Return JSON for your React frontend ─────────────────────────────
+    return {
+        "combined_html": combined_html,
+        "html": html_generated,
+        "css": css_generated,
+    }
+
+
+# ─── Legacy or health‐check endpoints can remain unchanged ─────────────────────────────
 
 @app.get("/")
 async def root():
     return {"message": "Hello from FastAPI backend!", "status": "running"}
 
-# Health check endpoint
-
-
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "service": "orchids-challenge-api"}
 
-@app.post("/submit-url")
-async def submit_url(payload: URLSubmit):
-    """Fetch the given URL and return the page title if reachable."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(str(payload.url), timeout=10)
-            response.raise_for_status()
-    except httpx.HTTPError as exc:
-        raise HTTPException(status_code=400, detail=f"Failed to retrieve URL: {exc}") from exc
-
-    soup = BeautifulSoup(response.text, "html.parser")
-    title = soup.title.string.strip() if soup.title else ""
-    return {"url": payload.url, "title": title}
-    
-@app.post("/scrape-context", response_model=WebsiteContext)
-async def scrape_context(payload: URLSubmit):
-    try:
-        return await scrape_website(str(payload.url))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Scraping failed: {e}")
-
-# Get all items
-
-@app.get("/items", response_model=List[Item])
-async def get_items():
-    return items_db
-
-# Get item by ID
-
-
-@app.get("/items/{item_id}", response_model=Item)
-async def get_item(item_id: int):
-    for item in items_db:
-        if item.id == item_id:
-            return item
-    return {"error": "Item not found"}
-
-# Create new item
-
-
-@app.post("/items", response_model=Item)
-async def create_item(item: ItemCreate):
-    new_id = max([item.id for item in items_db], default=0) + 1
-    new_item = Item(id=new_id, **item.dict())
-    items_db.append(new_item)
-    return new_item
-
-# Update item
-
-
-@app.put("/items/{item_id}", response_model=Item)
-async def update_item(item_id: int, item: ItemCreate):
-    for i, existing_item in enumerate(items_db):
-        if existing_item.id == item_id:
-            updated_item = Item(id=item_id, **item.dict())
-            items_db[i] = updated_item
-            return updated_item
-    return {"error": "Item not found"}
-
-# Delete item
-
-
-@app.delete("/items/{item_id}")
-async def delete_item(item_id: int):
-    for i, item in enumerate(items_db):
-        if item.id == item_id:
-            deleted_item = items_db.pop(i)
-            return {"message": f"Item {item_id} deleted successfully", "deleted_item": deleted_item}
-    return {"error": "Item not found"}
-
-
-def main():
-    """Run the application"""
-    uvicorn.run(
-        "hello:app",
-        host="127.0.0.1",
-        port=8000,
-        reload=True
-    )
-
 
 if __name__ == "__main__":
-    main()
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
