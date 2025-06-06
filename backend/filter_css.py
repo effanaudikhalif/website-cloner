@@ -1,64 +1,39 @@
+# filter_css.py
+
+import re
 from bs4 import BeautifulSoup
-import cssutils
+from typing import Set
 
-def extract_used_selectors(html):
-    soup = BeautifulSoup(html, 'html.parser')
 
-    # Extract tags like div, p, section, etc.
-    tags = set(tag.name for tag in soup.find_all())
+def extract_selectors_from_html(html: str) -> Set[str]:
+    """Extract tag names, class selectors, and ID selectors used in the HTML."""
+    soup = BeautifulSoup(html, "html.parser")
 
-    # Extract class names like 'hero', 'cta-button', etc.
-    classes = set(cls for tag in soup.find_all(class_=True) for cls in tag.get('class'))
+    tags = {tag.name for tag in soup.find_all()}
+    classes = {f".{cls}" for tag in soup.find_all(class_=True) for cls in tag.get("class", [])}
+    ids = {f"#{tag.get('id')}" for tag in soup.find_all(id=True)}
 
-    # Extract ids like 'main-header', etc.
-    ids = set(tag['id'] for tag in soup.find_all(id=True))
+    return tags | classes | ids
 
-    return tags, classes, ids
 
-def filter_css(css, used_tags, used_classes, used_ids):
-    css_parser = cssutils.CSSParser()
-    stylesheet = css_parser.parseString(css)
-    filtered_css = ""
+def filter_css(css: str, used_selectors: Set[str]) -> str:
+    """Keep only CSS rules that match used selectors."""
+    filtered_rules = []
 
-    for rule in stylesheet.cssRules:
-        if rule.type == rule.STYLE_RULE:
-            selectors = rule.selectorText.split(',')
-            kept_selectors = []
+    # Pattern for CSS rules: selector { ... }
+    rules = re.findall(r'([^{]+)\{[^}]*\}', css)
 
-            for sel in selectors:
-                sel = sel.strip()
+    for rule in rules:
+        selectors = [s.strip() for s in rule.split(",")]
+        if any(sel for sel in selectors if sel in used_selectors):
+            full_rule = re.search(rf'({re.escape(rule)}\s*\{{[^}}]*\}})', css)
+            if full_rule:
+                filtered_rules.append(full_rule.group(1).strip())
 
-                if sel.startswith('.'):
-                    if sel[1:] in used_classes:
-                        kept_selectors.append(sel)
-                elif sel.startswith('#'):
-                    if sel[1:] in used_ids:
-                        kept_selectors.append(sel)
-                else:
-                    # Handle compound selectors like 'div.header', 'section.hero > h2'
-                    base_sel = sel.split()[0].split(':')[0].split('.')[0].split('#')[0]
-                    if base_sel in used_tags:
-                        kept_selectors.append(sel)
+    return "\n\n".join(filtered_rules)
 
-            if kept_selectors:
-                rule.selectorText = ', '.join(kept_selectors)
-                filtered_css += rule.cssText + "\n"
 
-    return filtered_css
-
-if __name__ == "__main__":
-    # Read your simplified HTML and full CSS
-    with open("recreated_page.html", "r") as html_file:
-        html = html_file.read()
-
-    with open("style.css", "r") as css_file:
-        css = css_file.read()
-
-    used_tags, used_classes, used_ids = extract_used_selectors(html)
-    cleaned_css = filter_css(css, used_tags, used_classes, used_ids)
-
-    # Save the filtered CSS
-    with open("filtered_style.css", "w") as out_file:
-        out_file.write(cleaned_css)
-
-    print("Filtered CSS written to filtered_style.css")
+def filter_css_from_html_and_css(html: str, css: str) -> str:
+    """Entry point: given full HTML and CSS, return only used CSS rules."""
+    used_selectors = extract_selectors_from_html(html)
+    return filter_css(css, used_selectors)

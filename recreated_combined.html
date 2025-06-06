@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    color: #40464d;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+.page-wrapper {
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 4.29975vw;
+    padding-right: 4.29975vw;
+    position: relative;
+    width: 100%;
+    max-width: 1200px;
+}
+
+.site-header {
+    padding: 30px 0;
+    text-align: center;
+}
+
+.site-header h1 {
+    color: #000;
+    font-size: 2em;
+    margin: 0;
+    font-weight: 700;
+}
+
+.main-content {
+    margin: 2em 0;
+}
+
+section {
+    margin-bottom: 2em;
+    padding: 1.5em;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+h2 {
+    color: #000;
+    font-size: 1.5em;
+    margin-bottom: 0.5em;
+    margin-top: 0;
+    font-weight: 600;
+}
+
+p {
+    margin: 0 0 1.5em 0;
+    line-height: 1.6;
+}
+
+a {
+    color: #cc0000 !important;
+    text-decoration: underline !important;
+}
+
+button {
+    background-color: #eee;
+    border: 0;
+    border-radius: 2px;
+    color: #444;
+    cursor: pointer;
+    display: inline-block;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: normal;
+    margin: 0 15px 15px 0;
+    padding: 0.5em 1em;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: baseline;
+}
+
+button:hover {
+    background-color: #ddd;
+}
+
+.navigation-menu {
+    text-align: center;
+    margin: 2em 0;
+}
+
+.site-footer {
+    background-color: #242629;
+    color: #afafaf;
+    margin-left: -4.29975vw;
+    margin-right: -4.29975vw;
+    padding: 2em 4.29975vw;
+    text-align: center;
+    margin-top: 3em;
+}
+
+.footer-content p {
+    margin: 0;
+    font-size: 0.9em;
+}
+
+/* Mobile First Responsive Design */
+@media (max-width: 768px) {
+    .page-wrapper {
+        padding-left: 1em;
+        padding-right: 1em;
+    }
+    
+    .site-header h1 {
+        font-size: 1.5em;
+    }
+    
+    h2 {
+        font-size: 1.25em;
+    }
+    
+    section {
+        padding: 1em;
+    }
+    
+    .site-footer {
+        margin-left: -1em;
+        margin-right: -1em;
+        padding: 1.5em 1em;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .page-wrapper {
+        padding-left: 2em;
+        padding-right: 2em;
+    }
+    
+    .site-footer {
+        margin-left: -2em;
+        margin-right: -2em;
+        padding: 2em;
+    }
+}
+
+@media (min-width: 1025px) {
+    section {
+        padding: 2em;
+    }
+    
+    .main-content {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5em;
+    }
+}
+</style>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage | Boston University</title>
+</head>
+<body>
+    <div class="page-wrapper">
+        <header class="site-header">
+            <h1>Homepage | Boston University</h1>
+        </header>
+
+        <main class="main-content">
+            <section class="featured-section">
+                <h2>Using AI to Identify Plundered Antiquities</h2>
+                <p>Boston University researchers are pioneering new artificial intelligence techniques to help museums and collectors identify stolen cultural artifacts and return them to their countries of origin.</p>
+            </section>
+
+            <section class="athletics-section">
+                <h2>BU Athletics</h2>
+                <p>Stay up to date with the latest news, scores, and highlights from Boston University's athletic programs across all sports.</p>
+            </section>
+
+            <section class="hub-section">
+                <h2>BU Hub</h2>
+                <p>Explore Boston University's general education curriculum designed to help students develop essential intellectual and practical capacities.</p>
+            </section>
+        </main>
+
+        <nav class="navigation-menu">
+            <button class="menu-toggle">Full Menu</button>
+            <button class="menu-close">Close Menu</button>
+        </nav>
+
+        <footer class="site-footer">
+            <div class="footer-content">
+                <p>&copy; 2024 Boston University. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
