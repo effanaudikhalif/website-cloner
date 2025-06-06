@@ -4,6 +4,7 @@ import asyncio
 from playwright.async_api import async_playwright
 from browserbase import Browserbase
 from bs4 import BeautifulSoup
+import aiohttp
 
 # Replace with your actual keys or use dotenv
 BROWSERBASE_API_KEY = "bb_live_CfggyqxwcPXO_YRf5vEJJS4FMtQ"
@@ -17,6 +18,7 @@ class WebsiteContext(BaseModel):
     scripts: List[str]
     images: List[str]
     summary: dict
+    css_contents: str  # Added to store downloaded CSS
 
 
 def extract_important_pieces(html: str) -> dict:
@@ -44,9 +46,24 @@ def extract_important_pieces(html: str) -> dict:
     }
 
 
+async def download_stylesheets(stylesheet_urls: List[str]) -> str:
+    css_contents = []
+    async with aiohttp.ClientSession() as session:
+        for url in stylesheet_urls:
+            try:
+                async with session.get(url, timeout=10) as response:
+                    if response.status == 200:
+                        text = await response.text()
+                        css_contents.append(f"/* {url} */\n{text}")
+                    else:
+                        css_contents.append(f"/* Failed to load: {url} */")
+            except Exception as e:
+                css_contents.append(f"/* Error loading {url}: {e} */")
+    return "\n\n".join(css_contents)
+
+
 async def scrape_website(url: str) -> WebsiteContext:
     bb = Browserbase(api_key=BROWSERBASE_API_KEY)
-
     session = bb.sessions.create(project_id=BROWSERBASE_PROJECT_ID)
 
     async with async_playwright() as p:
@@ -69,6 +86,8 @@ async def scrape_website(url: str) -> WebsiteContext:
         html = await page.content()
         summary = extract_important_pieces(html)
 
+        css_contents = await download_stylesheets(stylesheets)
+
         await browser.close()
 
     return WebsiteContext(
@@ -78,4 +97,5 @@ async def scrape_website(url: str) -> WebsiteContext:
         scripts=scripts,
         images=images,
         summary=summary,
+        css_contents=css_contents
     )
