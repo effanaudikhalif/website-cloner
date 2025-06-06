@@ -10,8 +10,12 @@ import anthropic
 from scraper import scrape_website
 from filter_css import filter_css_from_html_and_css
 
-# Where to dump the scraped context (full HTML, raw CSS, summary, etc.)
-CONTEXT_FILE = Path(__file__).with_name("context.json")
+# ── create (or ensure) a “generated” folder next to this script ──
+GENERATED_DIR = Path(__file__).parent / "generated"
+GENERATED_DIR.mkdir(exist_ok=True)
+
+# Where to dump the scraped context
+CONTEXT_FILE = GENERATED_DIR / "context.json"
 
 # Your Anthropic API key
 API_KEY = "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"
@@ -33,13 +37,12 @@ def build_summary_and_minimal_html(context: dict) -> (dict, str):
     # 1) NAV LINKS with exact label/text and href
     nav_links = []
     for href in context.get("summary", {}).get("nav_links", [])[:5]:
-        # Derive a “label” from the URL path if possible (e.g. "/admissions" → "Admissions")
+        # Derive a “label” from the URL path if possible (e.g. "/admissions" → "Admissions")
         label = href.rstrip("/").split("/")[-1].replace("-", " ").title() or href
         nav_links.append({"href": href, "label": label})
     summary["nav_links"] = nav_links
 
-    # 2) HERO – we’ll assume the first <img> found in the full HTML is the hero image
-    #    and the first scraped heading is the hero heading. Subheading = first paragraph.
+    # 2) HERO – use first <img> as hero image + first scraped heading + first paragraph
     hero_img = context.get("images", [None])[0] or ""
     hero_heading = context.get("summary", {}).get("headings", [""])[0]
     paragraphs = context.get("summary", {}).get("paragraphs", [])
@@ -51,7 +54,7 @@ def build_summary_and_minimal_html(context: dict) -> (dict, str):
         "button_text": "Explore BU"
     }
 
-    # 3) NEWS CARDS – take up to 3 scraped section_headers (assuming they correspond to card headings)
+    # 3) NEWS CARDS – up to 3 scraped section_headers
     cards = []
     for header in context.get("summary", {}).get("section_headers", [])[:3]:
         cards.append({
@@ -60,7 +63,7 @@ def build_summary_and_minimal_html(context: dict) -> (dict, str):
         })
     summary["news_cards"] = cards
 
-    # 4) FOOTER LINKS – take up to 4 from nav_links as placeholders
+    # 4) FOOTER LINKS – reuse up to 4 nav_links
     footer_links = []
     for entry in nav_links[:4]:
         footer_links.append({"label": entry["label"], "href": entry["href"]})
@@ -69,7 +72,7 @@ def build_summary_and_minimal_html(context: dict) -> (dict, str):
     # Now build the minimal HTML snippet:
     parts = []
 
-    # ---------- HEADER + NAV ----------
+    # ── HEADER + NAV ──
     parts.append("<header class=\"site-header\">")
     parts.append(f"  <h1>{title}</h1>")
     if nav_links:
@@ -81,7 +84,7 @@ def build_summary_and_minimal_html(context: dict) -> (dict, str):
         parts.append("  </nav>")
     parts.append("</header>")
 
-    # ---------- HERO ----------
+    # ── HERO ──
     parts.append("<section class=\"hero\">")
     parts.append(f"  <img src=\"{hero_img}\" alt=\"{hero_heading}\">")
     parts.append("  <div class=\"hero-text\">")
@@ -91,7 +94,7 @@ def build_summary_and_minimal_html(context: dict) -> (dict, str):
     parts.append("  </div>")
     parts.append("</section>")
 
-    # ---------- NEWS CARDS (3) ----------
+    # ── NEWS CARDS (3) ──
     parts.append("<section class=\"news-cards\">")
     parts.append("  <div class=\"news-grid\">")
     for card in cards:
@@ -103,7 +106,7 @@ def build_summary_and_minimal_html(context: dict) -> (dict, str):
     parts.append("  </div>")
     parts.append("</section>")
 
-    # ---------- FOOTER ----------
+    # ── FOOTER ──
     parts.append("<footer class=\"site-footer\">")
     parts.append("  <div class=\"footer-links\">")
     parts.append("    <ul>")
@@ -125,15 +128,14 @@ def build_critical_css(filtered_css: str) -> str:
       • .site-header, .main-nav, .hero, .hero img, .hero-text, .news-cards,
         .news-grid, .news-card, .read-more, .site-footer, .footer-links
     """
-    # We’ll look for any rule whose selector matches one of these critical substrings:
     critical_selectors = [
         r"\bbody\b",
         r"\bh1\b", r"\bh2\b", r"\bh3\b", r"\ba\b", r"\bbutton\b",
         r"\.site-header\b",
         r"\.main-nav\b",
-        r"\.hero\b", 
-        r"\.hero\s+img\b", 
-        r"\.hero-text\b", 
+        r"\.hero\b",
+        r"\.hero\s+img\b",
+        r"\.hero-text\b",
         r"\.news-cards\b",
         r"\.news-grid\b",
         r"\.news-card\b",
@@ -142,13 +144,10 @@ def build_critical_css(filtered_css: str) -> str:
         r"\.footer-links\b"
     ]
 
-    # Break the filtered_css into individual rules: we assume “selector { ... }”
     rules = re.findall(r"([^{]+\{[^}]*\})", filtered_css, re.DOTALL)
-
     critical_rules = []
     for rule in rules:
         selector_part = rule.split("{", 1)[0].strip()
-        # If any critical pattern appears in selector_part, keep the rule
         for pat in critical_selectors:
             if re.search(pat, selector_part):
                 critical_rules.append(rule.strip())
@@ -165,7 +164,6 @@ def format_prompt(min_html: str, summary: dict, critical_css: str) -> str:
       3) We embed the small critical CSS snippet (```css```).
       4) We instruct Claude to return exactly two fences: ```html``` and ```css```.
     """
-    # 1) JSON summary block
     summary_json = json.dumps(summary, indent=2)
 
     return (
@@ -223,9 +221,9 @@ async def main(url: str) -> None:
     context = await scrape_website(url)
     context_dict = context.model_dump()  # Pydantic V2 method
     
-    # 2) Save the raw context to context.json
+    # 2) Save the raw context to generated/context.json
     CONTEXT_FILE.write_text(json.dumps(context_dict, indent=2, default=str))
-    print("[DEBUG] context.json written.\n")
+    print("[DEBUG] context.json written to generated/\n")
 
     # 3) Grab the full HTML and raw CSS (for filtering)
     full_html = context_dict.get("html", "")
@@ -270,10 +268,10 @@ async def main(url: str) -> None:
     html_result = extract_code("html", text_content)
     css_result = extract_code("css", text_content)
 
-    # 11) Write to output files
-    Path("recreated_page.html").write_text(html_result)
-    Path("styles.css").write_text(css_result)
-    print("✅ Done. Files written: recreated_page.html, styles.css\n")
+    # 11) Write to output files inside generated/
+    (GENERATED_DIR / "recreated_page.html").write_text(html_result)
+    (GENERATED_DIR / "styles.css").write_text(css_result)
+    print("✅ Done. Files written to generated/: context.json, recreated_page.html, styles.css\n")
 
 
 if __name__ == "__main__":

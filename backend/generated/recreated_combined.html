@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <style>
+/* Reset and Base Styles */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #40464d;
+    line-height: 1.6;
+}
+
+img {
+    height: auto;
+    max-width: 100%;
+}
+
+a {
+    color: #cc0000 !important;
+    text-decoration: underline !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #000;
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
+    margin-bottom: 0.6em;
+    margin-top: 1em;
+}
+
+h3 {
+    font-size: 1.24192em;
+    line-height: 1.18977;
+}
+
+/* Buttons */
+button, [type="button"], [type="reset"], [type="submit"], .button, .button-primary, .button-selected {
+    background-color: #eee;
+    border: 0;
+    border-radius: 2px;
+    color: #444;
+    display: inline-block;
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
+    font-size: inherit;
+    line-height: normal;
+    margin: 0 15px 15px 0;
+    padding: 0.5em 1em;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: baseline;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+button:hover, .button:hover, .button-primary:hover {
+    background-color: #ddd;
+}
+
+/* Header */
+.site-header {
+    background-color: #fff;
+    border-bottom: 1px solid #ddd;
+    padding: 1rem;
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.site-title {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #cc0000;
+}
+
+.main-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.main-nav li {
+    margin: 0;
+}
+
+.main-nav a {
+    text-decoration: none;
+    color: #40464d;
+    font-weight: 500;
+    padding: 0.5rem;
+}
+
+.main-nav a:hover {
+    color: #cc0000;
+}
+
+/* Hero Section */
+.hero {
+    padding: 2rem 1rem;
+    background-color: #f8f8f8;
+}
+
+.hero-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    gap: 2rem;
+    align-items: center;
+}
+
+.hero-media img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+.hero-text h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #000;
+}
+
+/* News Cards */
+.news-cards {
+    padding: 3rem 1rem;
+}
+
+.news-grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    gap: 2rem;
+}
+
+.news-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.news-card h3 {
+    margin-top: 0;
+    color: #000;
+    font-size: 1.2rem;
+    line-height: 1.3;
+}
+
+.news-card p {
+    color: #666;
+    margin: 1rem 0;
+}
+
+.read-more {
+    color: #cc0000 !important;
+    text-decoration: none !important;
+    font-weight: 500;
+}
+
+.read-more:hover {
+    text-decoration: underline !important;
+}
+
+/* Footer */
+.site-footer {
+    background-color: #242629;
+    color: #afafaf;
+    padding: 2rem 1rem;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-links ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+
+.footer-links a {
+    color: #afafaf !important;
+    text-decoration: none !important;
+}
+
+.footer-links a:hover {
+    color: #cc0000 !important;
+    text-decoration: underline !important;
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+    .header-container {
+        flex-wrap: nowrap;
+    }
+    
+    .hero-container {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .news-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+    
+    .main-nav ul {
+        flex-wrap: nowrap;
+    }
+}
+
+@media (min-width: 1024px) {
+    .hero-text h2 {
+        font-size: 2.5rem;
+    }
+    
+    .news-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 767px) {
+    .header-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .main-nav ul {
+        justify-content: center;
+        font-size: 0.9rem;
+    }
+    
+    .hero-text h2 {
+        font-size: 1.5rem;
+    }
+    
+    .footer-links ul {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}
+  </style>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boston University</title>
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-container">
+            <h1 class="site-title">Boston University</h1>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="https://www.bu.edu/admissions-overview/">Admissions Overview</a></li>
+                    <li><a href="https://www.bu.edu/academics">Academics</a></li>
+                    <li><a href="/research">Research</a></li>
+                    <li><a href="https://www.bu.edu/alumni/giving/">Giving</a></li>
+                    <li><a href="https://search.bu.edu">Search.Bu.Edu</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-container">
+                <div class="hero-media">
+                    <img src="https://www.bu.edu/home/img/vert-AP23076343385194-600x500.jpg" alt="Using AI to Identify Plundered Antiquities">
+                </div>
+                <div class="hero-text">
+                    <h2>Using AI to Identify Plundered Antiquities</h2>
+                    <button class="button-primary">Explore BU</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="news-cards">
+            <div class="news-grid">
+                <article class="news-card">
+                    <h3>FAQs on Federal ActionsRead More</h3>
+                    <p>Preview text...</p>
+                    <a href="#" class="read-more">Read More</a>
+                </article>
+                <article class="news-card">
+                    <h3>Using AI to Identify Plundered AntiquitiesBU archaeologists use machine learning algorithm to help identify stolen Cambodian statuesLearn More</h3>
+                    <p>Preview text...</p>
+                    <a href="#" class="read-more">Read More</a>
+                </article>
+                <article class="news-card">
+                    <h3>BU Todayheadlines:jun 6thThings-to-doTo Do Today: Start a Garden with Boston Public Library's Seed LibraryStudent LifeYour Guide to LGBTQIA+ Resources at Boston University and BeyondLOCAL WEATHERWe've Had 12 Consecutive Weekends of Rain. What's Up with That?Check out our BU Today Featured Events</h3>
+                    <p>Preview text...</p>
+                    <a href="#" class="read-more">Read More</a>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-links">
+                <ul>
+                    <li><a href="https://www.bu.edu/admissions-overview/">Admissions Overview</a></li>
+                    <li><a href="https://www.bu.edu/academics">Academics</a></li>
+                    <li><a href="/research">Research</a></li>
+                    <li><a href="https://www.bu.edu/alumni/giving/">Giving</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
