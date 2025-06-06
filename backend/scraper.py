@@ -13,7 +13,6 @@ BROWSERBASE_PROJECT_ID = "762cf107-8e17-4684-9024-ba1d80c3f963"
 
 class WebsiteContext(BaseModel):
     url: HttpUrl
-    title: str
     stylesheets: List[str]
     scripts: List[str]
     images: List[str]
