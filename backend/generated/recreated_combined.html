@@ -2,356 +2,245 @@
 <html lang="en">
 <head>
   <style>
-/* Base Styles and Font */
 * {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
 body {
-    margin: 0;
-    padding: 0;
-    font-family: "Benton-Sans", "Helvetica", sans-serif;
-    color: #40464d;
-    line-height: 1.5;
-}
-
-/* Typography */
-h1, h2, h3, h4, h5, h6 {
-    color: #000;
-    font-family: "Benton-Sans", "Helvetica", sans-serif;
-    margin-bottom: 0.6em;
-    margin-top: 1em;
-}
-
-h1 {
-    font-size: 2em;
-    margin: 0;
-}
-
-h2 {
-    font-size: 1.5em;
-}
-
-h3 {
-    font-size: 1.24192em;
-    line-height: 1.18977;
-}
-
-/* Links */
-a {
-    color: #cc0000 !important;
-    text-decoration: underline !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
 }
 
 /* Header */
 .site-header {
     background-color: #fff;
-    padding: 1rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem 0;
 }
 
 .site-header h1 {
-    margin: 0 0 1rem 0;
-    text-align: center;
-    font-size: 1.8em;
+    display: none;
+}
+
+.main-nav {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
 }
 
 .main-nav ul {
     list-style: none;
-    margin: 0;
-    padding: 0;
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
     gap: 1rem;
 }
 
-.main-nav li {
-    margin: 0;
+.main-nav a {
+    color: #0645ad;
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
 }
 
-.main-nav a {
-    padding: 0.5rem 1rem;
-    display: block;
-    white-space: nowrap;
+.main-nav a:hover {
+    background-color: #f8f9fa;
+    text-decoration: underline;
 }
 
 /* Hero Section */
 .hero {
-    position: relative;
-    margin-bottom: 2rem;
+    text-align: center;
+    padding: 3rem 1rem;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 .hero img {
-    width: 100%;
+    width: 200px;
     height: auto;
-    max-height: 500px;
-    object-fit: cover;
-}
-
-.hero-text {
-    padding: 1.5rem;
-    background-color: rgba(255, 255, 255, 0.95);
-    margin: 1rem;
+    margin-bottom: 2rem;
 }
 
 .hero-text h2 {
-    margin-top: 0;
+    font-size: 2rem;
     margin-bottom: 1rem;
-    font-size: 1.5em;
+    color: #000;
+    font-weight: 600;
 }
 
-/* Buttons */
-button, [type="button"], [type="reset"], [type="submit"], .button, .button-primary, .button-selected {
-    background-color: #eee;
-    border: 0;
-    border-radius: 2px;
-    color: #444;
-    display: inline-block;
-    font-family: "Benton-Sans", "Helvetica", sans-serif;
-    font-size: inherit;
-    line-height: normal;
-    margin: 0 15px 15px 0;
-    padding: 0.5em 1em;
-    text-align: center;
-    text-decoration: none;
-    vertical-align: baseline;
+.hero-text p {
+    font-size: 1.1rem;
+    color: #54595d;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero-text button {
+    background-color: #0645ad;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    border-radius: 6px;
     cursor: pointer;
-    user-select: none;
-    white-space: nowrap;
+    transition: background-color 0.2s;
 }
 
-button:hover, [type="button"]:hover, [type="reset"]:hover, [type="submit"]:hover {
-    background-color: #ddd;
+.hero-text button:hover {
+    background-color: #0a58ca;
 }
 
-/* News Cards */
+/* News Cards Section */
 .news-cards {
-    padding: 1rem;
+    padding: 2rem 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .news-grid {
     display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
-    grid-template-columns: 1fr;
-}
-
-.news-card {
-    background-color: #fff;
-    border: 1px solid #eee;
-    padding: 1.5rem;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.news-card h3 {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    color: #000;
-    font-size: 1.1em;
-    line-height: 1.3;
-}
-
-.news-card p {
-    margin-bottom: 1rem;
-    color: #666;
-    font-size: 0.9em;
-}
-
-.read-more {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    background-color: #eee;
-    color: #444 !important;
-    text-decoration: none !important;
-    border-radius: 2px;
-    font-size: 0.9em;
-    transition: background-color 0.2s;
-}
-
-.read-more:hover {
-    background-color: #ddd;
 }
 
 /* Footer */
 .site-footer {
-    background-color: #242629;
-    color: #afafaf;
-    padding: 2rem 1rem;
+    background-color: #fff;
+    border-top: 1px solid #e9ecef;
+    padding: 2rem 0;
     margin-top: 3rem;
-    font-size: 12px;
-    line-height: 1.15;
+}
+
+.footer-links {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
 }
 
 .footer-links ul {
     list-style: none;
-    margin: 0;
-    padding: 0;
     display: flex;
     flex-wrap: wrap;
+    gap: 1.5rem;
     justify-content: center;
-    gap: 1rem;
-}
-
-.footer-links li {
-    margin: 0;
 }
 
 .footer-links a {
-    color: #afafaf !important;
-    text-decoration: none !important;
-    padding: 0.5rem;
-    display: block;
+    color: #0645ad;
+    text-decoration: none;
+    font-size: 0.9rem;
 }
 
 .footer-links a:hover {
-    color: #cc0000 !important;
-    text-decoration: underline !important;
+    text-decoration: underline;
 }
 
-/* Responsive Design */
-@media (min-width: 576px) {
-    .news-grid {
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    }
-    
-    .hero-text {
-        position: absolute;
-        bottom: 2rem;
-        left: 2rem;
-        right: 2rem;
-        max-width: 500px;
-    }
-}
-
-@media (min-width: 768px) {
-    .site-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 2rem;
-    }
-    
-    .site-header h1 {
-        margin: 0;
-        text-align: left;
-    }
-    
+/* Mobile Responsive */
+@media (max-width: 768px) {
     .main-nav ul {
-        justify-content: flex-end;
+        justify-content: center;
+        gap: 0.5rem;
     }
     
-    .news-cards {
-        padding: 2rem;
+    .main-nav a {
+        font-size: 0.8rem;
+        padding: 0.3rem;
     }
     
-    .news-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 2rem;
+    .hero {
+        padding: 2rem 1rem;
     }
     
-    .hero-text {
-        position: absolute;
-        bottom: 3rem;
-        left: 3rem;
-        max-width: 600px;
+    .hero img {
+        width: 150px;
     }
     
     .hero-text h2 {
-        font-size: 2em;
-    }
-}
-
-@media (min-width: 1024px) {
-    .site-header {
-        padding: 1.5rem 4rem;
+        font-size: 1.5rem;
     }
     
-    .news-cards {
-        padding: 3rem 4rem;
+    .hero-text p {
+        font-size: 1rem;
     }
     
-    .site-footer {
-        padding: 3rem 4rem;
+    .footer-links ul {
+        gap: 1rem;
+        flex-direction: column;
+        align-items: center;
     }
 }
 
-/* Image responsiveness */
-img {
-    height: auto;
-    max-width: 100%;
-}
-
-/* Utility classes for screen readers */
-.u-visually-hidden, .screen-reader-text {
-    border: 0;
-    clip: rect(0, 0, 0, 0);
-    -webkit-clip-path: inset(50%);
-    clip-path: inset(50%);
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    padding: 0;
-    position: absolute;
-    width: 1px;
+@media (max-width: 480px) {
+    .main-nav ul {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .hero img {
+        width: 120px;
+    }
+    
+    .hero-text h2 {
+        font-size: 1.3rem;
+    }
+    
+    .hero-text button {
+        padding: 0.6rem 1.5rem;
+        font-size: 0.9rem;
+    }
 }
   </style>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boston University</title>
+    <title>Wikipedia - The Free Encyclopedia</title>
 </head>
 <body>
     <header class="site-header">
-        <h1>Boston University</h1>
+        <h1></h1>
         <nav class="main-nav">
             <ul>
-                <li><a href="https://www.bu.edu/admissions-overview/">Admissions Overview</a></li>
-                <li><a href="https://www.bu.edu/academics">Academics</a></li>
-                <li><a href="/research">Research</a></li>
-                <li><a href="https://www.bu.edu/alumni/giving/">Giving</a></li>
-                <li><a href="https://search.bu.edu">Search.Bu.Edu</a></li>
+                <li><a href="//en.wikipedia.org/">En.Wikipedia.Org</a></li>
+                <li><a href="//ja.wikipedia.org/">Ja.Wikipedia.Org</a></li>
+                <li><a href="//de.wikipedia.org/">De.Wikipedia.Org</a></li>
+                <li><a href="//ru.wikipedia.org/">Ru.Wikipedia.Org</a></li>
+                <li><a href="//es.wikipedia.org/">Es.Wikipedia.Org</a></li>
             </ul>
         </nav>
     </header>
-
+    
     <main>
         <section class="hero">
-            <img src="https://www.bu.edu/home/img/vert-AP23076343385194-600x500.jpg" alt="Using AI to Identify Plundered Antiquities">
+            <img src="https://www.wikipedia.org/portal/wikipedia.org/assets/img/Wikipedia-logo-v2.png" alt="Wikipedia The Free Encyclopedia">
             <div class="hero-text">
-                <h2>Using AI to Identify Plundered Antiquities</h2>
-                <button>Explore BU</button>
+                <h2>Wikipedia The Free Encyclopedia</h2>
+                <p>Save your favorite articles to read offline, sync your reading lists across devices and customize your reading experience with the official Wikipedia app.</p>
+                <button>Search</button>
             </div>
         </section>
-
+        
         <section class="news-cards">
             <div class="news-grid">
-                <article class="news-card">
-                    <h3>FAQs on Federal ActionsRead More</h3>
-                    <p>Preview text...</p>
-                    <a href="#" class="read-more">Read More</a>
-                </article>
-                <article class="news-card">
-                    <h3>Using AI to Identify Plundered AntiquitiesBU archaeologists use machine learning algorithm to help identify stolen Cambodian statuesLearn More</h3>
-                    <p>Preview text...</p>
-                    <a href="#" class="read-more">Read More</a>
-                </article>
-                <article class="news-card">
-                    <h3>BU Todayheadlines:jun 6thThings-to-doTo Do Today: Start a Garden with Boston Public Library's Seed LibraryStudent LifeYour Guide to LGBTQIA+ Resources at Boston University and BeyondLOCAL WEATHERWe've Had 12 Consecutive Weekends of Rain. What's Up with That?Check out our BU Today Featured Events</h3>
-                    <p>Preview text...</p>
-                    <a href="#" class="read-more">Read More</a>
-                </article>
             </div>
         </section>
     </main>
-
+    
     <footer class="site-footer">
         <div class="footer-links">
             <ul>
-                <li><a href="https://www.bu.edu/admissions-overview/">Admissions Overview</a></li>
-                <li><a href="https://www.bu.edu/academics">Academics</a></li>
-                <li><a href="/research">Research</a></li>
-                <li><a href="https://www.bu.edu/alumni/giving/">Giving</a></li>
+                <li><a href="//en.wikipedia.org/">En.Wikipedia.Org</a></li>
+                <li><a href="//ja.wikipedia.org/">Ja.Wikipedia.Org</a></li>
+                <li><a href="//de.wikipedia.org/">De.Wikipedia.Org</a></li>
+                <li><a href="//ru.wikipedia.org/">Ru.Wikipedia.Org</a></li>
             </ul>
         </div>
     </footer>

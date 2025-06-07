@@ -2,7 +2,6 @@
 
 import json
 import re
-import sys
 from pathlib import Path
 import asyncio
 
@@ -11,16 +10,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, HttpUrl
 import uvicorn
 
-import anthropic  # your Anthropic SDK
+import anthropic  # Anthropic SDK
 
-# import your existing modules:
+# import our helper modules
 from scraper import scrape_website
 from filter_css import filter_css_from_html_and_css
-from recreate_site import build_summary_and_minimal_html, build_critical_css, format_prompt
+from recreate_site import (
+    build_summary_and_minimal_html,
+    build_critical_css,
+    format_prompt
+)
 from inline_css import inline_css
 
-
-# ─── FastAPI setup ────────────────────────────────────────────────────────────────
 
 app = FastAPI(
     title="Orchids Challenge API",
@@ -30,29 +31,28 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For local development; tighten in production
+    allow_origins=["*"],       # For local development; tighten in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+
 class URLSubmit(BaseModel):
     url: HttpUrl
 
 
-# ─── /generate endpoint ───────────────────────────────────────────────────────────────
-
 @app.post("/generate")
 async def generate(payload: URLSubmit):
     """
-    1) Scrape the given URL (full HTML + raw CSS) via scrape_website(...)
-    2) Write raw context to generated/context.json (optional)
-    3) Filter the CSS with filter_css_from_html_and_css(...)
-    4) Build summary + minimal HTML snippet via build_summary_and_minimal_html(...)
-    5) Build critical CSS via build_critical_css(...)
-    6) Format a prompt for Claude via format_prompt(...)
-    7) Send prompt to Anthropic → two code fences: ```html``` + ```css```
-    8) Extract those blocks, inline the CSS, and write to generated/*
+    1) Scrape the given URL (full HTML + raw CSS)
+    2) Save raw context to generated/context.json
+    3) Filter CSS to include only selectors present in HTML
+    4) Build summary + minimal HTML snippet
+    5) Build critical CSS from filtered CSS
+    6) Format an Anthropic prompt
+    7) Send prompt to Claude → receive two code fences: ```html``` + ```css```
+    8) Extract those fences, inline CSS into HTML, and write generated files
     9) Return JSON { combined_html, html, css } to the caller
     """
     url = str(payload.url)
@@ -69,8 +69,10 @@ async def generate(payload: URLSubmit):
     gen_dir = Path("generated")
     gen_dir.mkdir(exist_ok=True)
 
-    # ─── 2) (Optional) Save raw context.json ─────────────────────────────
-    Path(gen_dir / "context.json").write_text(json.dumps(context_dict, indent=2, default=str))
+    # ─── 2) Save raw context.json ─────────────────────────────
+    Path(gen_dir / "context.json").write_text(
+        json.dumps(context_dict, indent=2, default=str)
+    )
 
     # ─── 3) Filter CSS ─────────────────────────────
     full_html = context_dict.get("html", "")
@@ -80,13 +82,13 @@ async def generate(payload: URLSubmit):
     # ─── 4) Build summary + minimal HTML snippet ─────────────────────────────
     summary_json_obj, minimal_html = build_summary_and_minimal_html(context_dict)
 
-    # ─── 5) Build “critical CSS” from the filtered CSS ─────────────────────────────
+    # ─── 5) Build critical CSS from filtered CSS ─────────────────────────────
     critical_css = build_critical_css(filtered_css)
 
     # ─── 6) Format prompt for Claude ─────────────────────────────
     prompt = format_prompt(summary_json_obj, minimal_html, critical_css)
 
-    # ─── 7) Send to Claude ─────────────────────────────
+    # ─── 7) Send prompt to Claude ─────────────────────────────
     client = anthropic.Anthropic(api_key="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")
     response = client.messages.create(
         model="claude-sonnet-4-20250514",
@@ -97,15 +99,12 @@ async def generate(payload: URLSubmit):
     # ─── 8) Extract raw Claude output, then pull out HTML/CSS fences ─────────────────────────────
     raw_output = "".join(part.text for part in response.content if hasattr(part, "text"))
 
-    # extract code block helpers
     def extract_code(block_type: str, text: str) -> str:
         fence_pattern = rf"```{block_type}\s*(.*?)\s*```"
         match = re.search(fence_pattern, text, re.DOTALL)
         if match:
             return match.group(1).strip()
-
         if block_type == "css":
-            # fallback: capture from the opening ```css to end
             start_pattern = r"```css\s*(.*)$"
             match2 = re.search(start_pattern, text, re.DOTALL)
             if match2:
@@ -131,11 +130,10 @@ async def generate(payload: URLSubmit):
     }
 
 
-# ─── Legacy or health‐check endpoints can remain unchanged ─────────────────────────────
-
 @app.get("/")
 async def root():
     return {"message": "Hello from FastAPI backend!", "status": "running"}
+
 
 @app.get("/health")
 async def health_check():
