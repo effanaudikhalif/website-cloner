@@ -8,8 +8,8 @@ from browserbase import Browserbase
 from bs4 import BeautifulSoup
 import aiohttp
 
-BROWSERBASE_API_KEY = "bb_live_CfggyqxwcPXO_YRf5vEJJS4FMtQ"
-BROWSERBASE_PROJECT_ID = "762cf107-8e17-4684-9024-ba1d80c3f963"
+BROWSERBASE_API_KEY = ""
+BROWSERBASE_PROJECT_ID = ""
 
 class WebsiteContext(BaseModel):
     url: HttpUrl

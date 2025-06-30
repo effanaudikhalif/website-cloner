@@ -18,7 +18,7 @@ GENERATED_DIR.mkdir(exist_ok=True)
 CONTEXT_FILE = GENERATED_DIR / "context.json"
 
 # Your Anthropic API key
-API_KEY = "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"
+API_KEY = ""
 
 
 def build_summary_and_minimal_html(context: dict) -> (dict, str):
