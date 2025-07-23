@@ -176,6 +176,10 @@ def format_prompt(min_html: str, summary: dict, critical_css: str) -> str:
         "- Use semantic tags (<header>,<nav>,<section>,<footer>).\n"
         "- Mobile-first responsive layout.\n"
         "- Follow provided colors, spacing, typography.\n"
+        "- Use the provided images, buttons, and testimonials/cards as described in the JSON summary.\n"
+        "- For each testimonial/card, include the avatar, quote, and author in a visually appealing card layout.\n"
+        "- Style buttons according to their extracted classes and inline styles.\n"
+        "- Place images in their appropriate sections as indicated by their parent context.\n"
     )
 
 
