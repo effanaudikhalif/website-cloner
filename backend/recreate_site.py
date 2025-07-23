@@ -6,6 +6,8 @@ import sys
 from pathlib import Path
 import asyncio
 import anthropic
+import os
+from dotenv import load_dotenv
 
 from scraper import scrape_website
 from filter_css import filter_css_from_html_and_css
@@ -17,8 +19,7 @@ GENERATED_DIR.mkdir(exist_ok=True)
 # Where to dump the scraped context
 CONTEXT_FILE = GENERATED_DIR / "context.json"
 
-# Your Anthropic API key
-API_KEY = ""
+load_dotenv()
 
 
 def build_summary_and_minimal_html(context: dict) -> (dict, str):
@@ -60,6 +61,11 @@ def build_summary_and_minimal_html(context: dict) -> (dict, str):
     # 4) FOOTER LINKS
     footer_links = [{"label": l["label"], "href": l["href"]} for l in nav_links[:4]]
     summary["footer_links"] = footer_links
+
+    # --- NEW: Add main_content_summaries to summary if present ---
+    main_content_summaries = context.get("summary", {}).get("main_content_summaries", [])
+    if main_content_summaries:
+        summary["main_content_summaries"] = main_content_summaries
 
     # Build the minimal HTML snippet
     parts = []
@@ -166,7 +172,7 @@ async def main(url: str) -> None:
     prompt = format_prompt(minimal_html, summary, critical)
 
     print("[DEBUG] Sending to Claude…")
-    client = anthropic.Anthropic(api_key=API_KEY)
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
     resp = client.messages.create(
         model="claude-sonnet-4-20250514",
         messages=[{"role": "user", "content": prompt}],

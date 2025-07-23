@@ -4,6 +4,8 @@ import json
 import re
 from pathlib import Path
 import asyncio
+import os
+from dotenv import load_dotenv
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,6 +24,8 @@ from recreate_site import (
 )
 from inline_css import inline_css
 
+
+load_dotenv()
 
 app = FastAPI(
     title="Orchids Challenge API",
@@ -89,7 +93,7 @@ async def generate(payload: URLSubmit):
     prompt = format_prompt(summary_json_obj, minimal_html, critical_css)
 
     # ─── 7) Send prompt to Claude ─────────────────────────────
-    client = anthropic.Anthropic(api_key="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")
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
     response = client.messages.create(
         model="claude-sonnet-4-20250514",
         messages=[{"role": "user", "content": prompt}],
