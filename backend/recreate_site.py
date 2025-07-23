@@ -67,6 +67,12 @@ def build_summary_and_minimal_html(context: dict) -> (dict, str):
     if main_content_summaries:
         summary["main_content_summaries"] = main_content_summaries
 
+    # --- NEW: Add enhanced fields to summary if present ---
+    for key in ["images_detailed", "buttons_detailed", "links_detailed", "testimonials"]:
+        val = context.get("summary", {}).get(key, None)
+        if val:
+            summary[key] = val
+
     # Build the minimal HTML snippet
     parts = []
     # HEADER + NAV
@@ -81,14 +87,39 @@ def build_summary_and_minimal_html(context: dict) -> (dict, str):
 
     # HERO
     parts.append('<section class="hero">')
-    parts.append(f'  <img src="{hero_img}" alt="{hero_heading}">')
+    # Use first detailed hero image if available
+    images_detailed = context.get("summary", {}).get("images_detailed", [])
+    hero_img_src = images_detailed[0]["src"] if images_detailed else hero_img
+    if hero_img_src:
+        parts.append(f'  <img src="{hero_img_src}" alt="{hero_heading}">')
     parts.append('  <div class="hero-text">')
     parts.append(f"    <h2>{hero_heading}</h2>")
     parts.append(f"    <p>{hero_subheading}</p>")
-    if button_text:
+    # Use styled buttons if available
+    buttons_detailed = context.get("summary", {}).get("buttons_detailed", [])
+    if buttons_detailed:
+        for btn in buttons_detailed[:2]:
+            btn_class = " ".join(btn["class"]) if btn["class"] else ""
+            btn_style = f' style="{btn["style"]}"' if btn["style"] else ""
+            parts.append(f'    <button class="{btn_class}"{btn_style}>{btn["text"]}</button>')
+    elif button_text:
         parts.append(f"    <button>{button_text}</button>")
     parts.append("  </div>")
     parts.append("</section>")
+
+    # TESTIMONIALS/CARDS
+    testimonials = context.get("summary", {}).get("testimonials", [])
+    if testimonials:
+        parts.append('<section class="testimonials"><div class="testimonial-list">')
+        for t in testimonials[:2]:
+            parts.append('  <div class="testimonial-card">')
+            if t.get("avatar"):
+                parts.append(f'    <img src="{t["avatar"]}" alt="{t.get("author", "Avatar")}" class="testimonial-avatar">')
+            parts.append(f'    <blockquote>{t["quote"]}</blockquote>')
+            if t.get("author"):
+                parts.append(f'    <div class="testimonial-author">{t["author"]}</div>')
+            parts.append('  </div>')
+        parts.append('</div></section>')
 
     # NEWS CARDS
     parts.append('<section class="news-cards"><div class="news-grid">')
