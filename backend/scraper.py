@@ -58,6 +58,56 @@ def extract_important_pieces(html: str) -> dict:
     ))
     used_ids = [tag.get("id") for tag in content_source.find_all(attrs={"id": True})]
 
+    # --- ENHANCED: Extract all images with src, alt, and parent context ---
+    images_detailed = []
+    for img in content_source.find_all("img"):
+        parent = img.find_parent(["section", "div", "article", "header", "footer"])
+        images_detailed.append({
+            "src": img.get("src"),
+            "alt": img.get("alt"),
+            "parent_tag": parent.name if parent else None,
+            "parent_classes": parent.get("class", []) if parent else [],
+        })
+
+    # --- ENHANCED: Extract all buttons and links with text, class, style ---
+    buttons_detailed = []
+    for btn in content_source.find_all("button"):
+        buttons_detailed.append({
+            "text": btn.get_text(strip=True),
+            "class": btn.get("class", []),
+            "style": btn.get("style", "")
+        })
+    links_detailed = []
+    for a in content_source.find_all("a"):
+        links_detailed.append({
+            "text": a.get_text(strip=True),
+            "href": a.get("href"),
+            "class": a.get("class", []),
+            "style": a.get("style", "")
+        })
+
+    # --- ENHANCED: Attempt to detect testimonial/card sections ---
+    testimonials = []
+    for card in content_source.find_all(["section", "div", "article"]):
+        classes = card.get("class", [])
+        if any("testimonial" in c or "review" in c or "card" in c for c in classes):
+            quote = card.get_text(" ", strip=True)
+            author = None
+            author_img = None
+            # Try to find author and avatar inside the card
+            author_tag = card.find(["span", "div", "p"], class_=lambda c: c and ("author" in c or "name" in c))
+            if author_tag:
+                author = author_tag.get_text(strip=True)
+            img_tag = card.find("img")
+            if img_tag:
+                author_img = img_tag.get("src")
+            testimonials.append({
+                "quote": quote,
+                "author": author,
+                "avatar": author_img,
+                "classes": classes
+            })
+
     summary = {
         "headings": headings,
         "buttons": buttons + links_as_buttons,
@@ -72,6 +122,11 @@ def extract_important_pieces(html: str) -> dict:
         # --- NEW: Add chunks and summaries ---
         "main_content_chunks": main_content_chunks,
         "main_content_summaries": main_content_summaries,
+        # --- ENHANCED: Add detailed images, buttons, links, testimonials ---
+        "images_detailed": images_detailed,
+        "buttons_detailed": buttons_detailed,
+        "links_detailed": links_detailed,
+        "testimonials": testimonials,
     }
 
     print("\n[DEBUG] Extracted Summary:")
